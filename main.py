@@ -50,6 +50,29 @@ def determine_volatility_state(vix_value: float) -> str:
         return "Normal / Watchful"
     else:
         return "High / Volatile"
+    
+def fetch_market_snapshot() -> dict[str, any]:
+    """
+    Fetches all market data and returns it as a raw dictionary.
+    """
+    data_store = {}
+    
+    # 1. Fetch raw prices
+    for tName, tSymbol in TICKERS.items():
+        data_store[tName] = get_latest_price(tSymbol)
+
+    # 2. Calculate Derived State
+    vix_val = data_store.get("VIX")
+    if vix_val is not None:
+        data_store["Volatility State"] = determine_volatility_state(vix_val)
+    else:
+        data_store["Volatility State"] = "Unknown"
+        
+    # 3. Add Timestamp
+    data_store["generated_at"] = datetime.now().isoformat()
+    
+    return data_store
+
 # ---------------------------------------------------------
 # MAIN EXECUTION
 # ---------------------------------------------------------
