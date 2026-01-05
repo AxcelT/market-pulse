@@ -5,10 +5,10 @@ from datetime import datetime
 # CONFIGURATION
 # ---------------------------------------------------------
 TICKERS = {
-    "S&P 500": "^GSPC",        # Hint: Starts with ^
-    "VIX": "^VIX",            # Hint: Starts with ^
-    "10Y Yield": "^TNX",      # Hint: Starts with ^
-    "USD/PHP": "PHP=X"         # Hint: Ends with =X
+    "S&P 500": "^GSPC",        
+    "VIX": "^VIX",            
+    "10Y Yield": "^TNX",      
+    "USD/PHP": "PHP=X"         
 }
 
 # ---------------------------------------------------------
@@ -24,7 +24,7 @@ def get_latest_price(ticker_symbol):
     
     ticker = yf.Ticker(ticker_symbol)
     history = ticker.history(period="5d")
-    close_price = history.Close[3]
+    close_price = history.Close[-1]
     return close_price
 
 def determine_volatility_state(vix_value):
