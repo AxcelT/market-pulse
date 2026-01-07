@@ -1,14 +1,17 @@
+import logging
 import yfinance as yf
 from datetime import datetime
+from typing import Optional, Any
+from utils import safe_fmt
 
 # ---------------------------------------------------------
 # CONFIGURATION
 # ---------------------------------------------------------
 TICKERS = {
-    "S&P 500": "^GSPC",        # Hint: Starts with ^
-    "VIX": "^VIX",            # Hint: Starts with ^
-    "10Y Yield": "^TNX",      # Hint: Starts with ^
-    "USD/PHP": "PHP=X"         # Hint: Ends with =X
+    "S&P 500": "^GSPC",        
+    "VIX": "^VIX",            
+    "10Y Yield": "^TNX",      
+    "USD/PHP": "PHP=X"         
 }
 
 # ---------------------------------------------------------
@@ -20,55 +23,75 @@ def get_latest_price(ticker_symbol):
     Takes a ticker symbol (e.g., "AAPL"), fetches data,
     and returns the most recent closing price.
     """
-    print(f"Fetching data for {ticker_symbol}...")
+    try:
+        logging.info(f"Fetching data for {ticker_symbol}...")
+        ticker = yf.Ticker(ticker_symbol)
+        
+        # Using period="5d" is safer to ensure that at least one trading day is captured
+        history = ticker.history(period="5d")
+        
+        if history.empty:
+            logging.warning(f"No data found for {ticker_symbol}")
+            return None
+            
+        return history['Close'].iloc[-1]
+        
+    except Exception as e:
+        logging.error(f"Error fetching {ticker_symbol}: {e}")
+        return None
     
-    ticker = yf.Ticker(ticker_symbol)
-    history = ticker.history(period="5d")
-    close_price = history.Close[3]
-    return close_price
-
-def determine_volatility_state(vix_value):
+def determine_volatility_state(vix_value: float) -> str:
     """
     Returns a string description of the market state based on VIX value.
-    Example: "High Volatility" if VIX > 20.
     """
     if vix_value < 15:
         return "Low / Complacent"
     elif 15 <= vix_value <= 25:
         return "Normal / Watchful"
     else:
-        return "High / Volatile"    
+        return "High / Volatile"
     
-    return "Unknown State"
+def fetch_market_snapshot() -> dict[str, Any]:
+    """
+    Fetches all market data and returns it as a raw dictionary.
+    """
+    data_store = {}
+    
+    # 1. Fetch raw prices
+    for tName, tSymbol in TICKERS.items():
+        data_store[tName] = get_latest_price(tSymbol)
+
+    # 2. Calculate Derived State
+    vix_val = data_store.get("VIX")
+    if vix_val is not None:
+        data_store["Volatility State"] = determine_volatility_state(vix_val)
+    else:
+        data_store["Volatility State"] = "Unknown"
+        
+    # 3. Add Timestamp
+    data_store["generated_at"] = datetime.now().isoformat()
+    
+    return data_store
 
 # ---------------------------------------------------------
 # MAIN EXECUTION
 # ---------------------------------------------------------
 
 def main():
-    # Get the current date
-    current_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"\n--- MARKET SNAPSHOT: {current_date} ---\n")
-
-    # Fetch Data
-    data_store = {}
+    snapshot = fetch_market_snapshot()
     
-    for tName, tSymbol in TICKERS.items():
-        price = get_latest_price(tSymbol)
-        data_store[tName] = price
+    # Extract the timestamp from the data
+    current_date = snapshot.get("generated_at", "Unknown Date")
 
-    # specific logic for Volatility State
-    vix_val = data_store.get("VIX", 0)
-    vol_state = determine_volatility_state(vix_val)
-
-    # Display Results
+    print(f"\n--- MARKET SNAPSHOT: {current_date} ---\n")
     print(f"{'Metric':<20} | {'Value':<15}")
     print("-" * 35)
-    print(f"{'S&P 500':<20} | {data_store['S&P 500']:.2f}")
-    print(f"{'VIX':<20} | {data_store['VIX']:.2f}")
-    print(f"{'Volatility State':<20} | {vol_state}")
-    print(f"{'US 10Y Yield':<20} | {data_store['10Y Yield']:.2f}%")
-    print(f"{'USD/PHP':<20} | {data_store['USD/PHP']:.2f}")
+
+    print(f"{'S&P 500':<20} | {safe_fmt(snapshot.get('S&P 500'))}")
+    print(f"{'VIX':<20} | {safe_fmt(snapshot.get('VIX'))}")
+    print(f"{'Volatility State':<20} | {snapshot.get('Volatility State')}")
+    print(f"{'US 10Y Yield':<20} | {safe_fmt(snapshot.get('10Y Yield'), suffix='%')}")
+    print(f"{'USD/PHP':<20} | {safe_fmt(snapshot.get('USD/PHP'))}")
 
 if __name__ == "__main__":
     main()
