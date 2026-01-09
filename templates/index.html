@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Pulse</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <header>
+        <h1>Market Pulse</h1>
+        <div id="last-updated" class="status-badge">Loading...</div>
+    </header>
+
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-title">S&P 500</div>
+            <div id="sp500-val" class="card-value">---</div>
+            <div class="card-sub">Market Index</div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">VIX</div>
+            <div id="vix-val" class="card-value">---</div>
+            <div class="card-sub">Volatility Index</div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Risk Level</div>
+            <div id="vol-state" class="card-value">---</div>
+            <div class="card-sub">Current Sentiment</div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">US 10Y Yield</div>
+            <div id="yield-val" class="card-value">---</div>
+            <div class="card-sub">Treasury Rate</div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">USD/PHP</div>
+            <div id="usd-php-val" class="card-value">---</div>
+            <div class="card-sub">Exchange Rate</div>
+        </div>
+    </div>
+
+    <footer>
+        Data provided by Yahoo Finance • Auto-refresh available via API
+    </footer>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
