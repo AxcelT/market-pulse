@@ -1,7 +1,7 @@
 # Feature Request: Web-Based Investment Journal
 
 **Status:** Open
-**Assignee:** @Sister
+**Assignee:** @Julia Tidalgo
 **Context:** We want to move away from terminal scripts. We need a web page where I can write a journal entry, and the system automatically saves it with the current market data.
 
 ## 1. Setup
